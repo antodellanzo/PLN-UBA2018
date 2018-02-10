@@ -1,9 +1,10 @@
 # https://docs.python.org/3/library/unittest.html
 from unittest import TestCase
-from math import log, inf
+from math import log
 
 from languagemodeling.ngram import NGram
 
+inf = float('inf')
 
 class TestNGram(TestCase):
 

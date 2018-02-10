@@ -17,7 +17,7 @@ class LanguageModel(object):
 
         sent -- the sentence as a list of tokens.
         """
-        return -math.inf
+        return -float('inf')
 
     def log_prob(self, sents):
         result = 0.0

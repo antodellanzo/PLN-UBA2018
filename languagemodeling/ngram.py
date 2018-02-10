@@ -52,19 +52,19 @@ class NGram(LanguageModel):
 
         for sent in sents:
             self.addDelimiterToSentence(sent)
-            self.updateCountOfSentenceWithNgram( count, sent, n )
-            self.updateCountOfSentenceWithNgram( count, sent, n - 1 )
+            self.updateCountOfSentenceWithNgram(count, sent, n)
+            self.updateCountOfSentenceWithNgram(count, sent, n - 1)
 
         self._count = dict(count)
 
     def updateCountOfSentenceWithNgram(self, count, sent, n):
-        maximumStartOfNgram = len(sent) - ( n - 1)
-        for i in range( min( maximumStartOfNgram, len(sent) ) ):
-            ngram = tuple( sent[i:i+n] )
+        maximumStartOfNgram = len(sent) - (n - 1)
+        for i in range(min(maximumStartOfNgram, len(sent))):
+            ngram = tuple(sent[i:i+n])
             count[ngram] += 1
 
     def addDelimiterToSentence(self, sent):
-        for i in range( self._n - 1 ):
+        for i in range(self._n - 1):
             sent.insert(0, '<s>')
         sent.append('</s>')
 
@@ -73,7 +73,7 @@ class NGram(LanguageModel):
 
         tokens -- the n-gram or (n-1)-gram tuple.
         """
-        return self._count.get( tuple(tokens), 0 )
+        return self._count.get(tuple(tokens), 0)
 
     def cond_prob(self, token, prev_tokens=[]):
         """Conditional probability of a token.
@@ -84,8 +84,11 @@ class NGram(LanguageModel):
         if self.count(prev_tokens) == 0:
             return 0
         else:
-            whole_sentence_as_list = ( prev_tokens + [token] ) if ( isinstance(prev_tokens, list) ) else list( prev_tokens + (token,) )
-            return self.count( whole_sentence_as_list ) / self.count( prev_tokens )
+            if isinstance(prev_tokens, list):
+                whole_sentence_as_list = prev_tokens + [token]
+            else:
+                whole_sentence_as_list = list(prev_tokens + (token,))
+            return self.count(whole_sentence_as_list) / self.count(prev_tokens)
 
     def sent_prob(self, sent):
         """Probability of a sentence. Warning: subject to underflow problems.
@@ -98,7 +101,7 @@ class NGram(LanguageModel):
         for i in range(len(sent) - self._n + 1):
             ngramSent = sent[i:i+self._n]
             prob *= self.cond_prob_of_sentence(ngramSent)
-            
+
         return prob
 
     def sent_log_prob(self, sent):
@@ -114,7 +117,7 @@ class NGram(LanguageModel):
             cond_prob = self.cond_prob_of_sentence(ngramSent)
 
             if cond_prob != 0:
-                prob += math.log( cond_prob, 2)
+                prob += math.log(cond_prob, 2)
             else:
                 return -float('inf')
 
@@ -124,7 +127,6 @@ class NGram(LanguageModel):
         assert len(sentence) >= self._n
 
         if (self._n > 1):
-            return self.cond_prob( sentence[self._n-1], sentence[0:self._n-1] )
+            return self.cond_prob(sentence[self._n-1], sentence[0:self._n-1])
         else:
-            return self.cond_prob( sentence[self._n-1] )
-
+            return self.cond_prob(sentence[self._n-1])

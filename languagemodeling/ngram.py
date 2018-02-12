@@ -100,7 +100,7 @@ class NGram(LanguageModel):
 
         for i in range(len(sent) - self._n + 1):
             ngramSent = sent[i:i+self._n]
-            prob *= self.cond_prob_of_sentence(ngramSent)
+            prob *= self.cond_prob_of_ngram_sentence(ngramSent)
 
         return prob
 
@@ -114,7 +114,7 @@ class NGram(LanguageModel):
 
         for i in range(len(sent) - self._n + 1):
             ngramSent = sent[i:i+self._n]
-            cond_prob = self.cond_prob_of_sentence(ngramSent)
+            cond_prob = self.cond_prob_of_ngram_sentence(ngramSent)
 
             if cond_prob != 0:
                 prob += math.log(cond_prob, 2)
@@ -123,7 +123,7 @@ class NGram(LanguageModel):
 
         return prob
 
-    def cond_prob_of_sentence(self, sentence):
+    def cond_prob_of_ngram_sentence(self, sentence):
         assert len(sentence) >= self._n
 
         if (self._n > 1):

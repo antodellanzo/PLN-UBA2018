@@ -130,3 +130,38 @@ class NGram(LanguageModel):
             return self.cond_prob(sentence[self._n-1], sentence[0:self._n-1])
         else:
             return self.cond_prob(sentence[self._n-1])
+
+
+class AddOneNGram(NGram):
+
+    def __init__(self, n, sents):
+        vocabulary = set()
+        vocabulary.add("<\s>")
+
+        for sent in sents:
+            for word in sent:
+                vocabulary.add(word)
+        self._vocabularySize = len(vocabulary)
+
+        super().__init__(n, sents)
+
+    def V(self):
+        """Size of the vocabulary.
+        """
+        return self._vocabularySize
+
+    def cond_prob(self, token, prev_tokens=[]):
+        """Conditional probability of a token.
+
+        token -- the token.
+        prev_tokens -- the previous n-1 tokens (optional only if n = 1).
+        """
+        if self.count(prev_tokens) == 0:
+            return 0
+        else:
+            if isinstance(prev_tokens, list):
+                whole_sentence_as_list = prev_tokens + [token]
+            else:
+                whole_sentence_as_list = list(prev_tokens + (token,))
+            sentence_prob = self.count(whole_sentence_as_list)
+            return (sentence_prob + 1) / (self.count(prev_tokens) + self.V())

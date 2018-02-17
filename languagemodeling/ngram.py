@@ -192,7 +192,7 @@ class InterpolatedNGram(AddOneNGram):
         if gamma is None:
             total_sents = len(sents)
             held_out_data_size = int(90.0 * total_sents / 100.0)
-            self._held_out_data = copy.deepcopy(sents[held_out_data_size:])
+            held_out_data = sents[held_out_data_size:]
             sents = sents[0:held_out_data_size]
 
         self._gamma = gamma
@@ -216,13 +216,13 @@ class InterpolatedNGram(AddOneNGram):
 
         # estimate gamma using held-out data if no gamma was given
         # select gamma that minimizes perplexity
-        if gamma is None:
+        if gamma is None and held_out_data is not None:
             gammas = [1.0, 5.0, 10.0, 50.0, 100.0]
             min_perplexity = float('inf')
             gamma_of_min_perplexity = -1
             for current_gamma in gammas:
                 self._gamma = current_gamma
-                perplexity = self.perplexity(self._held_out_data)
+                perplexity = self.perplexity(held_out_data)
                 if perplexity < min_perplexity:
                     min_perplexity = perplexity
                     gamma_of_min_perplexity = current_gamma

@@ -1,0 +1,56 @@
+Ejercicio 1
+
+Seleccioné una base de datos de libros, los transformé de formato epub a txt y luego los uní en un solo archivo llamado corpus.txt. Luego, modifiqué el script train para poder utilizar este corpus, utilizando el PlaintextCorpusReader de la librería nltk y realizando la tokenización utilizando el patrón visto en clase, el cual comprobé que funcionase bien.
+
+Ejercicio 2
+
+Completé todos los métodos del archivo ngram y fui corriendo los tests hasta que todos estos funcionases correctamente. Para la construcción de la clase, recorrí todas las oraciones (provistas por el creador de la misma), les agregué los delimitadores correspondientes (los de inicio y fin de oración) utilizando un método auxiliar llamado 'addDelimiterToSentence' y agregué en un diccionario la cantidad de veces que se encontraba cada oración de tamaño n y n-1, es decir, los ngramas y (n-1)gramas. Para esto último generé un método auxiliar llamado 'updateCountOfSentenceWithNgram' que, dada una oración, un diccionario y un número entero n, agrega en el diccionario todas las oraciones de tamaño n halladas. Para el método 'count', simplemente obtuve en el diccionario la cantidad de veces que se repite la oración que se toma como parámetro de entrada (o cero en el caso en el que no se encuentre). Para obtener la probabilidad condicional de un token dado los anteriores, primero me fijo si existe un ngrama asociado a los prev_tokens (ya que sino estaría diviendo por cero). En caso de que no exista, devuelvo cero. Caso contrario, devuelvo la probabilidad condicional, la cual es count(prev_tokens + token)/count(prev_tokens). Para obtener la probabilidad de una oración, primero agrego los delimitadores a la misma utilizando el método auxiliar definido anteriormente, y luego voy obteniendo todas las suboraciones de tamaño n y acumulando probabilidad condicional de dicha oración. En el caso de la probabilidad logarítmica de la oración, hago lo mismo pero en vez de multiplicar las probabilidades, sumo el logaritmo de las mismas. 
+
+Ejercicio 3
+
+Completé los métodos de la casa NGramGenerator. Para la construcción de la clase, obtuve el modelo provisto como parámetro de entrada y generé un método auxiliar que itera sobre todos los ngramas del diccionario del modelo y retorna un diccionario en el que se encuentran los posibles tokens (junto con sus probabilidades) que le pueden seguir a una oración de tamaño (n-1). Luego de esto, cree un diccionario llamado 'sorted_probs' que guarda, para cada oración de tamaño (n-1), una lista de todos los tokens que les pueden seguir, ordenados decrecientemente según su probabilidad. Para el método de generar oraciones, voy agregando tokens en una lista dado los anteriores hasta llegar a un fin de oración (distinguido por el símbolo <\s>). Para la generación de los mismos, se llama al método 'generate_token', que busca todos los posibles tokens que le pueden seguir a la oración (obteniendo los últimos (n-1) tokens añadidos) en el diccionario 'sorted_probs' y realiza un sampleo para obtener al mismo. 
+Luego, utilizando el script train.py, fui generando modelos de ngramas con n \in {1,2,3,4} y ejecutando el script generate.py fui armando oraciones aleatorias (ya que utiliza los métodos del NGramGenerator). A continuación listo algunas de las oraciones obtenidas para cada modelo con n distinto (eliminé los espacios antes de los separados para obtener una mejor visualización):
+
+UNIGRAM:
+- al psicoanalítico persona de temblorosa
+- escribir faltaba lado padre
+- ese retomemos cada expresamente
+- era un la contrata
+
+BIGRAM:
+- Pero sabía que habían efectuado un bicho bueno, no admitir abiertamente daba instrucciones; aunque tenía dieciocho años antes.
+- Espere un ligero frío e iluminaba la fecha de Skandia y dificultades para irse a las negociaciones.
+- Lealtad o menos Rumplestiltskin no importaba que usted la cabecera de este asunto, sino porque tardes o porque está de la vida.
+- De perfil de café y lo único que estaba sentado con Calpurnia regresó con nosotros lo que era bueno.
+
+TIGRAM:
+- Tengo ese efecto sobre mí.
+- Siento cosquillas en la sala de reuniones.
+- Yo no lo veía tan bonita como la astronomía esférica , sin la menor duda de que el hombre siempre quiere comer.
+- Mikael asintió con la cabeza.
+
+QUATRIGRAM:
+- Le llevó un buen rato darse cuenta de que carecía de la imaginación, pero Hanna creyó percibir cierta emoción en los ojos de cualquier persona que hubiera conocido con anterioridad.
+- O a lo mejor te apetecía charlar un ratito.
+- Quizá necesitaría también un corazón nuevo.
+- Pero ya era demasiado tarde.
+
+Ejercicio 4
+
+Modifiqué el archivo de ngram para agregar la clase AddOneNGram que extiende NGram. Ésta agrega el método que obtiene un tamaño del vocabulario, para el cual, al construir la clase, guarda en una variable de instancia este valor para obtenerlo fácilmente. Éste se obtiene iterando sobre todas las oraciones, guardando cada palabra nueva que se encuentra y luego calculando el tamaño de esto. Además, AddOneNGram define un nuevo comportamiento para el método para obtener la probabilidad condicional de un token dado los (n-1) anteriores, ya que el mismo se obtiene ahora con la fórmula: (count(prev_tokens + token) + 1)/(count(prev_tokens) + V), siendo V el tamaño del vocabulario.
+Luego, modifiqué el script train para poder utilizar AddOneNGram al entrenar modelos. 
+
+Ejercicio 5
+
+Separé el corpus en dos archivos nuevos: uno conteniendo el 90% del contenido del corpus para usar como entrenamiento y otro el 10% para tests. Entrené nuevos modelos utilizando AddOneNGram para n \in {1,2,3,4} utilizando el corpus de entrenamiento en el script train.py. Luego, modiqué el script eval.py para que utilice el corpus de testing para realizar los cálculos. Corrí dicho script con cada modelo generado y obtuve los siguientes resultados para la perplejidad:
+
+           		|   1 |    2 |     3 |     4
+AddOne			| 878 | 1418 | 10272 | 20218
+
+Ejercicio 6
+
+Modiqué el archivo de ngram para agregar la clase InterpolatedNGram que extiende a AddOneNGram. En el constructor de clase, si el gamma no es pasado como parámetro, se dividen las oraciones de entrada en dos: unas para entrenar y otras para calcular el gamma. Para esto último, se realiza un barrido sobre distintos posibles valores de gamma, se calcula la perplexity del modelo para cada uno y se elige el que la minimiza. Se extiende la variable _count agregando todos los valores de m-gramas faltantes, con m < n-1, ya que los valores para n y n-1 son agregados en el constructor de la clase NGram. Se realiza un override del método 'cond_prob' en el que se calcula la probabilidad condicional de un token dado los previos usando interpolación, teniendo en cuenta si se desea utilizar la probabilidad condicional del modelo add_one para los unigramas. 
+Modifiqué el train.py para poder utilizar este modelo. Luego, lo entrené con el corpus de entrenamiento formado en el punto anterior para n \in {1, 2, 3, 4} y calculé la perplejidad utilizando el corpus de test. Obtuve los siguientes resultados para la perplejidad:
+
+           		|   1 |    2 |     3 |     4
+Interpolated	| 885 |  188 |   114 | 	  80

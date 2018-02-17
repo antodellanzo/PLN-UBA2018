@@ -215,18 +215,18 @@ class InterpolatedNGram(AddOneNGram):
             self._count[key] = value
 
         # estimate gamma using held-out data if no gamma was given
-        # select gamma that maximizes perplexity
+        # select gamma that minimizes perplexity
         if gamma is None:
             gammas = [1.0, 5.0, 10.0, 50.0, 100.0]
-            max_prob = -1
-            gamma_of_max_prob = -1
+            min_perplexity = float('inf')
+            gamma_of_min_perplexity = -1
             for current_gamma in gammas:
                 self._gamma = current_gamma
                 perplexity = self.perplexity(self._held_out_data)
-                if perplexity > max_prob:
-                    max_prob = perplexity
-                    gamma_of_max_prob = current_gamma
-            self._gamma = gamma_of_max_prob
+                if perplexity < min_perplexity:
+                    min_perplexity = perplexity
+                    gamma_of_min_perplexity = current_gamma
+            self._gamma = gamma_of_min_perplexity
 
     def cond_prob(self, token, prev_tokens=[]):
         cond_probs = list()

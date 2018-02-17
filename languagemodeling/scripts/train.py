@@ -47,7 +47,6 @@ if __name__ == '__main__':
 
     # train the model
     n = int(opts['-n'])
-    model = NGram(n, sents)
     model_class = models[opts['-m']]
     model = model_class(n, sents)
 

@@ -1,7 +1,7 @@
 # https://docs.python.org/3/library/collections.html
 from collections import defaultdict
+import copy
 import math
-
 
 class LanguageModel(object):
 
@@ -23,7 +23,7 @@ class LanguageModel(object):
         result = 0.0
         for i, sent in enumerate(sents):
             lp = self.sent_log_prob(sent)
-            if lp == -math.inf:
+            if lp == -float('inf'):
                 return lp
             result += lp
         return result
@@ -51,9 +51,10 @@ class NGram(LanguageModel):
         count = defaultdict(int)
 
         for sent in sents:
-            self.addDelimiterToSentence(sent)
-            self.updateCountOfSentenceWithNgram(count, sent, n)
-            self.updateCountOfSentenceWithNgram(count, sent, n - 1)
+            new_sentence = copy.deepcopy(sent)
+            self.addDelimiterToSentence(new_sentence, self._n)
+            self.updateCountOfSentenceWithNgram(count, new_sentence, n)
+            self.updateCountOfSentenceWithNgram(count, new_sentence, n - 1)
 
         self._count = dict(count)
 
@@ -63,8 +64,8 @@ class NGram(LanguageModel):
             ngram = tuple(sent[i:i+n])
             count[ngram] += 1
 
-    def addDelimiterToSentence(self, sent):
-        for i in range(self._n - 1):
+    def addDelimiterToSentence(self, sent, n):
+        for i in range(n - 1):
             sent.insert(0, '<s>')
         sent.append('</s>')
 
@@ -75,7 +76,15 @@ class NGram(LanguageModel):
         """
         return self._count.get(tuple(tokens), 0)
 
-    def cond_prob(self, token, prev_tokens=[]):
+    def cond_prob(self, token, prev_tokens=tuple()):
+        """Conditional probability of a token.
+
+        token -- the token.
+        prev_tokens -- the previous n-1 tokens (optional only if n = 1).
+        """
+        return self.cond_prob_ngram(token, prev_tokens)
+
+    def cond_prob_ngram(self, token, prev_tokens=tuple()):
         """Conditional probability of a token.
 
         token -- the token.
@@ -95,7 +104,7 @@ class NGram(LanguageModel):
 
         sent -- the sentence as a list of tokens.
         """
-        self.addDelimiterToSentence(sent)
+        self.addDelimiterToSentence(sent, self._n)
         prob = 1
 
         for i in range(len(sent) - self._n + 1):
@@ -109,7 +118,7 @@ class NGram(LanguageModel):
 
         sent -- the sentence as a list of tokens.
         """
-        self.addDelimiterToSentence(sent)
+        self.addDelimiterToSentence(sent, self._n)
         prob = 0
 
         for i in range(len(sent) - self._n + 1):
@@ -156,12 +165,97 @@ class AddOneNGram(NGram):
         token -- the token.
         prev_tokens -- the previous n-1 tokens (optional only if n = 1).
         """
-        if self.count(prev_tokens) == 0:
-            return 0
+        return self.cond_prob_add_one_ngram(token, prev_tokens)
+
+    def cond_prob_add_one_ngram(self, token, prev_tokens=[]):
+        if isinstance(prev_tokens, list):
+            whole_sentence_as_list = prev_tokens + [token]
         else:
-            if isinstance(prev_tokens, list):
-                whole_sentence_as_list = prev_tokens + [token]
-            else:
-                whole_sentence_as_list = list(prev_tokens + (token,))
-            sentence_prob = self.count(whole_sentence_as_list)
-            return (sentence_prob + 1) / (self.count(prev_tokens) + self.V())
+            whole_sentence_as_list = list(prev_tokens + (token,))
+        sentence_prob = self.count(whole_sentence_as_list)
+        return float(sentence_prob + 1) / float(self.count(prev_tokens) + self.V())
+
+class InterpolatedNGram(AddOneNGram):
+
+    def __init__(self, n, sents, gamma=None, addone=True):
+        """
+        n -- order of the model.
+        sents -- list of sentences, each one being a list of tokens.
+        gamma -- interpolation hyper-parameter (if not given, estimate using
+            held-out data).
+        addone -- whether to use addone smoothing (default: True).
+        """
+        #save 10% of data to estimate gamma if no gamma was given
+        #use 90% of data for training
+        if gamma is None:
+            total_sents = len(sents)
+            held_out_data_size = int(90.0 * total_sents / 100.0)
+            self._held_out_data = copy.deepcopy(sents[held_out_data_size:])
+            sents = sents[0:held_out_data_size]
+
+        self._gamma = gamma
+        self._should_use_add_one = addone
+
+        super().__init__(n, sents)
+
+        count = defaultdict(int)
+
+        #store missing m-grams with m < n-1 ((n-1)-grams and n-grams where stored in super constructor)
+        for sent in sents:
+            for i in range(0, n-1):
+                sent_copy = copy.deepcopy(sent)
+                self.addDelimiterToSentence(sent_copy, i)
+                self.updateCountOfSentenceWithNgram(count, sent_copy, i)
+
+        #update _count attribute with this new data        
+        for key, value in count.items():
+            self._count[key] = value
+
+        #estimate gamma using held-out data if no gamma was given
+        #select gamma that maximizes perplexity
+        if gamma is None:    
+            gammas = [1.0, 5.0, 10.0, 50.0, 100.0]
+            max_prob = -1
+            gamma_of_max_prob = -1
+            for current_gamma in gammas:
+                self._gamma = current_gamma
+                perplexity = self.perplexity(self._held_out_data)
+                if perplexity > max_prob:
+                    max_prob = perplexity
+                    gamma_of_max_prob = current_gamma
+            self._gamma = gamma_of_max_prob
+
+    def cond_prob(self, token, prev_tokens=[]):
+        cond_probs = list()
+        prev_n = self._n - 1
+
+        #get cond_prob of token for m-grams with 1<m<n
+        for i in range(0, prev_n):
+            cond_prob = self.cond_prob_ngram(token, prev_tokens[i:])
+            cond_probs.append(cond_prob)
+        #check if should use add one cond prob for unigram
+        if self._should_use_add_one:
+            last_cond = self.cond_prob_add_one_ngram(token)
+        else:
+            last_cond = self.cond_prob_ngram(token)
+        cond_probs.append(last_cond)   
+
+        #calculate lambdas
+        lambdas = list()
+        for i in range(0, prev_n):
+            acum__prev_lambdas_sum = sum(lambdas)
+            prev_tokens_count = self.count(prev_tokens[i:])
+            current_lambda = (1-acum__prev_lambdas_sum) * prev_tokens_count / (prev_tokens_count + self._gamma)
+            lambdas.append(current_lambda)
+        last_lambda = 1
+        for i in range(0, len(lambdas)):
+            last_lambda -= lambdas[i]
+        lambdas.append(last_lambda)
+
+        #calculate final cond prob
+        prob = 0
+        for i in range(0, len(cond_probs)):
+            prob += lambdas[i] * cond_probs[i]
+
+        return prob
+

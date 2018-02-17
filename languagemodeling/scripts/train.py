@@ -18,9 +18,8 @@ import pickle
 
 from nltk.corpus import PlaintextCorpusReader
 from nltk.tokenize import RegexpTokenizer
+from languagemodeling.ngram import NGram, AddOneNGram, InterpolatedNGram
 
-from languagemodeling.ngram import NGram, AddOneNGram
-# from languagemodeling.ngram import NGram, AddOneNGram, InterpolatedNGram
 pattern = r'''(?x)    # set flag to allow verbose regexps
    (?:\d{1,3}(?:\.\d{3})+)  # numbers with '.' in the middle
    | (?:[Ss]r\.|[Ss]ra\.|art\.)  # common spanish abbreviations
@@ -33,8 +32,8 @@ pattern = r'''(?x)    # set flag to allow verbose regexps
 
 models = {
      'ngram': NGram,
-     'addone': AddOneNGram#,
-     #'inter': InterpolatedNGram,
+     'addone': AddOneNGram,
+     'inter': InterpolatedNGram,
 }
 
 

@@ -3,6 +3,7 @@ from collections import defaultdict
 import copy
 import math
 
+
 class LanguageModel(object):
 
     def sent_prob(self, sent):
@@ -173,7 +174,8 @@ class AddOneNGram(NGram):
         else:
             whole_sentence_as_list = list(prev_tokens + (token,))
         sentence_prob = self.count(whole_sentence_as_list)
-        return float(sentence_prob + 1) / float(self.count(prev_tokens) + self.V())
+        return (sentence_prob + 1) / (self.count(prev_tokens) + self.V())
+
 
 class InterpolatedNGram(AddOneNGram):
 
@@ -185,8 +187,8 @@ class InterpolatedNGram(AddOneNGram):
             held-out data).
         addone -- whether to use addone smoothing (default: True).
         """
-        #save 10% of data to estimate gamma if no gamma was given
-        #use 90% of data for training
+        # save 10% of data to estimate gamma if no gamma was given
+        # use 90% of data for training
         if gamma is None:
             total_sents = len(sents)
             held_out_data_size = int(90.0 * total_sents / 100.0)
@@ -200,20 +202,21 @@ class InterpolatedNGram(AddOneNGram):
 
         count = defaultdict(int)
 
-        #store missing m-grams with m < n-1 ((n-1)-grams and n-grams where stored in super constructor)
+        # store missing m-grams with m < n-1
+        # ((n-1)-grams and n-grams where stored in super constructor)
         for sent in sents:
             for i in range(0, n-1):
                 sent_copy = copy.deepcopy(sent)
                 self.addDelimiterToSentence(sent_copy, i)
                 self.updateCountOfSentenceWithNgram(count, sent_copy, i)
 
-        #update _count attribute with this new data        
+        # update _count attribute with this new data
         for key, value in count.items():
             self._count[key] = value
 
-        #estimate gamma using held-out data if no gamma was given
-        #select gamma that maximizes perplexity
-        if gamma is None:    
+        # estimate gamma using held-out data if no gamma was given
+        # select gamma that maximizes perplexity
+        if gamma is None:
             gammas = [1.0, 5.0, 10.0, 50.0, 100.0]
             max_prob = -1
             gamma_of_max_prob = -1
@@ -229,33 +232,33 @@ class InterpolatedNGram(AddOneNGram):
         cond_probs = list()
         prev_n = self._n - 1
 
-        #get cond_prob of token for m-grams with 1<m<n
+        # get cond_prob of token for m-grams with 1<m<n
         for i in range(0, prev_n):
             cond_prob = self.cond_prob_ngram(token, prev_tokens[i:])
             cond_probs.append(cond_prob)
-        #check if should use add one cond prob for unigram
+        # check if should use add one cond prob for unigram
         if self._should_use_add_one:
             last_cond = self.cond_prob_add_one_ngram(token)
         else:
             last_cond = self.cond_prob_ngram(token)
-        cond_probs.append(last_cond)   
+        cond_probs.append(last_cond)
 
-        #calculate lambdas
+        # alculate lambdas
         lambdas = list()
         for i in range(0, prev_n):
-            acum__prev_lambdas_sum = sum(lambdas)
             prev_tokens_count = self.count(prev_tokens[i:])
-            current_lambda = (1-acum__prev_lambdas_sum) * prev_tokens_count / (prev_tokens_count + self._gamma)
+            numerator = (1-sum(lambdas)) * prev_tokens_count
+            denominator = prev_tokens_count + self._gamma
+            current_lambda = numerator / denominator
             lambdas.append(current_lambda)
         last_lambda = 1
         for i in range(0, len(lambdas)):
             last_lambda -= lambdas[i]
         lambdas.append(last_lambda)
 
-        #calculate final cond prob
+        # calculate final cond prob
         prob = 0
         for i in range(0, len(cond_probs)):
             prob += lambdas[i] * cond_probs[i]
 
         return prob
-

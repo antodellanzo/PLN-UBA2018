@@ -200,42 +200,82 @@ class InterpolatedNGram(AddOneNGram):
 
         super().__init__(n, sents)
 
-        count = defaultdict(int)
-
         # store missing m-grams with m < n-1
-        # ((n-1)-grams and n-grams where stored in super constructor)
-        for sent in sents:
-            for i in range(0, n-1):
-                sent_copy = copy.deepcopy(sent)
-                self.addDelimiterToSentence(sent_copy, i)
-                self.updateCountOfSentenceWithNgram(count, sent_copy, i)
+        # ((n-1)-grams and n-grams where stored in superclass constructor)
+        count = defaultdict(int)
+        self.store_mgrams(n-1, sents, count)
 
         # update _count attribute with this new data
         for key, value in count.items():
             self._count[key] = value
 
         # estimate gamma using held-out data if no gamma was given
-        # select gamma that minimizes perplexity
         if gamma is None and held_out_data is not None:
-            gammas = [1.0, 5.0, 10.0, 50.0, 100.0]
-            min_perplexity = float('inf')
-            gamma_of_min_perplexity = -1
-            for current_gamma in gammas:
-                self._gamma = current_gamma
-                perplexity = self.perplexity(held_out_data)
-                if perplexity < min_perplexity:
-                    min_perplexity = perplexity
-                    gamma_of_min_perplexity = current_gamma
-            self._gamma = gamma_of_min_perplexity
+            self.estimate_gamma(held_out_data)
+
+    def store_mgrams(self, m, sents, count):
+        """Store in count all n-grams between 0 and m-1
+        m -- number to get all k-grams smallers than m
+        sents -- list of sentences, each one being a list of tokens.
+        count -- dictionary to store the result
+        """
+        for sent in sents:
+            for i in range(0, m):
+                sent_copy = copy.deepcopy(sent)
+                self.addDelimiterToSentence(sent_copy, i)
+                self.updateCountOfSentenceWithNgram(count, sent_copy, i)
+
+    def estimate_gamma(self, sents):
+        """Estimate _gamma variable using a list of sentences
+        to train the model and selecting the gamma that minimizes
+        the perplexity
+        sents -- held_out_data
+        """
+        gammas = [1.0, 5.0, 10.0, 50.0, 100.0]
+        min_perplexity = float('inf')
+        gamma_of_min_perplexity = -1
+        for current_gamma in gammas:
+            self._gamma = current_gamma
+            perplexity = self.perplexity(sents)
+            if perplexity < min_perplexity:
+                min_perplexity = perplexity
+                gamma_of_min_perplexity = current_gamma
+        self._gamma = gamma_of_min_perplexity
 
     def cond_prob(self, token, prev_tokens=[]):
-        cond_probs = list()
-        prev_n = self._n - 1
+        """Conditional probability of a token.
 
+        token -- the token.
+        prev_tokens -- the previous n-1 tokens (optional only if n = 1).
+        """
+        # compute cond_probs
+        cond_probs = list()
+        self.compute_cond_probs(token, prev_tokens, cond_probs)
+
+        # compute lambdas
+        lambdas = list()
+        self.compute_lambdas(token, prev_tokens, lambdas)
+
+        # compute final cond prob
+        prob = 0
+        for i in range(0, len(cond_probs)):
+            prob += lambdas[i] * cond_probs[i]
+
+        return prob
+
+    def compute_cond_probs(self, token, prev_tokens, cond_probs):
+        """computes the conditional probabilities of the
+        token given the prev_tokens for each m-gram (0 < m < n)
+        token -- the token.
+        prev_tokens -- the previous n-1 tokens.
+        cond_probs -- list to store the result
+        """
+        prev_n = self._n - 1
         # get cond_prob of token for m-grams with 1<m<n
         for i in range(0, prev_n):
             cond_prob = self.cond_prob_ngram(token, prev_tokens[i:])
             cond_probs.append(cond_prob)
+
         # check if should use add one cond prob for unigram
         if self._should_use_add_one:
             last_cond = self.cond_prob_add_one_ngram(token)
@@ -243,8 +283,14 @@ class InterpolatedNGram(AddOneNGram):
             last_cond = self.cond_prob_ngram(token)
         cond_probs.append(last_cond)
 
-        # alculate lambdas
-        lambdas = list()
+    def compute_lambdas(self, token, prev_tokens, lambdas):
+        """stores the lambdas used to calculate the Conditional
+        probability of the token given the prev_tokens
+        token -- the token.
+        prev_tokens -- the previous n-1 tokens.
+        lambdas -- list to store the result
+        """
+        prev_n = self._n - 1
         for i in range(0, prev_n):
             prev_tokens_count = self.count(prev_tokens[i:])
             numerator = (1-sum(lambdas)) * prev_tokens_count
@@ -255,10 +301,3 @@ class InterpolatedNGram(AddOneNGram):
         for i in range(0, len(lambdas)):
             last_lambda -= lambdas[i]
         lambdas.append(last_lambda)
-
-        # calculate final cond prob
-        prob = 0
-        for i in range(0, len(cond_probs)):
-            prob += lambdas[i] * cond_probs[i]
-
-        return prob

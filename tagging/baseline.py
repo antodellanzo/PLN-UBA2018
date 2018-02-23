@@ -50,6 +50,7 @@ class BaselineTagger:
 
         self._most_common_tag = sorted(tag_counts.items(), key=lambda x: -x[1])[0][0]
         self._word_tags_count = dict()
+        self._default_tag = default_tag
         for word, tags_dict in word_tags_count.items():
             self._word_tags_count[word] = sorted(tags_dict.items(), key=lambda x: -x[1])
 
@@ -66,7 +67,7 @@ class BaselineTagger:
         w -- the word.
         """
         if self.unknown(w):
-            return self._most_common_tag
+            return self._default_tag
         return self._word_tags_count.get(w)[0][0]
 
     def unknown(self, w):

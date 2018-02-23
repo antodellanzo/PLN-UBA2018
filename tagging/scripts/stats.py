@@ -21,51 +21,81 @@ class POSStats:
         """
         tagged_sents -- corpus (list/iterable/generator of tagged sentences)
         """
-        # WORK HERE!!
-        # COLLECT REQUIRED STATISTICS INTO DICTIONARIES.
+        self._sent_count = len(tagged_sents)
+        words_count = defaultdict(int)
+        tags_count = defaultdict(int)
+        self._word_tags = dict()
+        self._tcount = dict()
+        self._words = set()
+        self._token_count = 0
+        for tagged_sent in tagged_sents:
+            for word_and_tag in tagged_sent:
+                word = word_and_tag[0]
+                tag = word_and_tag[1]
+                words_count[word] += 1
+                tags_count[tag] += 1
+                self._word_tags.setdefault(word, set())
+                self._tcount.setdefault(tag, defaultdict(int))
+                self._tcount[tag][word] += 1
+                self._words.add(word)
+                self._word_tags[word].add(tag)
+                self._token_count += 1
+        self._words_count = dict(words_count)
+        self._tags_count = dict(tags_count)
 
     def sent_count(self):
         """Total number of sentences."""
-        # WORK HERE!!
+        return self._sent_count
 
     def token_count(self):
         """Total number of tokens."""
-        # WORK HERE!!
+        return self._token_count
 
     def words(self):
         """Vocabulary (set of word types)."""
-        # WORK HERE!!
+        return self._words
 
     def word_count(self):
         """Vocabulary size."""
-        # WORK HERE!!
+        return len(self._words)
 
     def word_freq(self, w):
         """Frequency of word w."""
-        # WORK HERE!!
+        return self._words_count.get(w, 0)
 
     def unambiguous_words(self):
         """List of words with only one observed POS tag."""
-        # WORK HERE!!
+        unambiguous_words = list()
+        for word, tags_list in self._word_tags.items():
+            if len(tags_list) == 1:
+                unambiguous_words.append(word)
+        return unambiguous_words
 
     def ambiguous_words(self, n):
         """List of words with n different observed POS tags.
 
         n -- number of tags.
         """
-        # WORK HERE!!
+        ambiguous_words = list()
+        for word, tags_list in self._word_tags.items():
+            if len(tags_list) == n:
+                ambiguous_words.append(word)
+        return ambiguous_words
 
     def tags(self):
         """POS Tagset."""
-        # WORK HERE!!
+        tag_set = set()
+        for tag, count in self._tags_count.items():
+            tag_set.add(tag)
+        return tag_set
 
     def tag_count(self):
         """POS tagset size."""
-        # WORK HERE!!
+        return len(self._tags_count)
 
     def tag_freq(self, t):
         """Frequency of tag t."""
-        # WORK HERE!!
+        return self._tags_count.get(t, 0)
 
     def tag_word_dict(self, t):
         """Dictionary of words and their counts for tag t."""

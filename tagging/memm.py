@@ -26,18 +26,33 @@ class MEMM:
         tagged_sents -- list of sentences, each one being a list of pairs.
         clf -- classifying model, one of 'svm', 'maxent', 'mnb' (default: 'svm').
         """
+        self.n = n
+
         # 1. build the pipeline
-        # WORK HERE!!
-        self._pipeline = pipeline = None
+        features = [word_lower, word_istitle, word_isupper, word_isdigit]
+        parametric_features = list()
+        for f in features:
+            parametric_features.append(PrevWord(f))
+            parametric_features.append(NextWord(f))
+        for m in range(1, n+1):
+            parametric_features.append(NPrevTags(m))
+        features.extend(parametric_features)
+
+        vect = Vectorizer(features)
+        self._pipeline = pipeline = Pipeline([('vect', vect), ('clf', classifiers[clf]())])
 
         # 2. train it
         print('Training classifier...')
-        X = self.sents_histories(tagged_sents)
-        y = self.sents_tags(tagged_sents)
+        tagged_sents_list = list(tagged_sents)
+        X = self.sents_histories(tagged_sents_list)
+        y = self.sents_tags(tagged_sents_list)
         pipeline.fit(list(X), list(y))
 
         # 3. build known words set
-        # WORK HERE!!
+        self._known_words = set()
+        for sent in tagged_sents_list:
+            for word, _ in sent:
+                self._known_words.add(word)
 
     def sents_histories(self, tagged_sents):
         """
@@ -84,18 +99,25 @@ class MEMM:
 
         sent -- the sentence.
         """
-        # WORK HERE!!
+        tags = list()
+        prev = ('<s>', '<s>')
+        for i, w in enumerate(sent):
+            h = History(sent, prev, i)
+            tag = self.tag_history(h)
+            prev = (prev + (tag,))[1:]
+            tags.append(tag)
+        return tags
 
     def tag_history(self, h):
         """Tag a history.
 
         h -- the history.
         """
-        # WORK HERE!!
+        return self._pipeline.predict([h])[0]
 
     def unknown(self, w):
         """Check if a word is unknown for the model.
 
         w -- the word.
         """
-        # WORK HERE!!
+        return w not in self._known_words

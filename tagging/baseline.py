@@ -48,7 +48,6 @@ class BaselineTagger:
                 word_tags_count.setdefault(word, defaultdict(int))
                 word_tags_count[word][tag] += 1
 
-        self._most_common_tag = sorted(tag_counts.items(), key=lambda x: -x[1])[0][0]
         self._word_tags_count = dict()
         self._default_tag = default_tag
         for word, tags_dict in word_tags_count.items():

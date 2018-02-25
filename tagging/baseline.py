@@ -51,7 +51,8 @@ class BaselineTagger:
         self._word_tags_count = dict()
         self._default_tag = default_tag
         for word, tags_dict in word_tags_count.items():
-            self._word_tags_count[word] = sorted(tags_dict.items(), key=lambda x: -x[1])
+            sorted_tags = sorted(tags_dict.items(), key=lambda x: -x[1])
+            self._word_tags_count[word] = sorted_tags
 
     def tag(self, sent):
         """Tag a sentence.

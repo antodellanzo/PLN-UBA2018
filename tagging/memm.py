@@ -1,6 +1,3 @@
-from math import log2
-from numpy import exp2
-
 from featureforge.vectorizer import Vectorizer
 from sklearn.pipeline import Pipeline
 from sklearn.naive_bayes import MultinomialNB
@@ -24,7 +21,8 @@ class MEMM:
         """
         n -- order of the model.
         tagged_sents -- list of sentences, each one being a list of pairs.
-        clf -- classifying model, one of 'svm', 'maxent', 'mnb' (default: 'svm').
+        clf -- classifying model,
+        one of 'svm', 'maxent', 'mnb' (default: 'svm').
         """
         self.n = n
 
@@ -39,7 +37,9 @@ class MEMM:
         features.extend(parametric_features)
 
         vect = Vectorizer(features)
-        self._pipeline = pipeline = Pipeline([('vect', vect), ('clf', classifiers[clf]())])
+        classifier = classifiers[clf]()
+        pipeline = Pipeline([('vect', vect), ('clf', classifier)])
+        self._pipeline = pipeline
 
         # 2. train it
         print('Training classifier...')

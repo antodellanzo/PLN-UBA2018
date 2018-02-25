@@ -13,6 +13,7 @@ from docopt import docopt
 import pickle
 import sys
 from collections import defaultdict
+import time
 
 from ancora import SimpleAncoraCorpusReader
 
@@ -40,6 +41,7 @@ if __name__ == '__main__':
     sents = list(corpus.tagged_sents())
 
     # tag
+    start = time.time()
     hits, total = 0, 0
     unk_hits, unk_total = 0, 0
     error_count = defaultdict(lambda: defaultdict(int))
@@ -85,8 +87,11 @@ if __name__ == '__main__':
         k_acc = float(hits - unk_hits) / (total - unk_total) * 100
     unk_acc = float(unk_hits) / unk_total * 100
 
+    end = time.time()
     print('')
     print('Accuracy: {:2.2f}% / {:2.2f}% / {:2.2f}%'.format(acc, k_acc, unk_acc))
+    print('Evaluation time: ', end='')
+    print(end - start)
 
     if opts['-c']:
         # print confusion matrix

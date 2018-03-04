@@ -14,8 +14,10 @@ import pickle
 from pprint import pprint
 from collections import defaultdict
 
-from sentiment.evaluator import Evaluator
-from sentiment.tass import InterTASSReader
+from evaluator import Evaluator
+from tass import InterTASSReader
+
+import analysis
 
 if __name__ == '__main__':
     opts = docopt(__doc__)
@@ -43,6 +45,14 @@ if __name__ == '__main__':
     evaluator.evaluate(y_true, y_pred)
     evaluator.print_results()
     evaluator.print_confusion_matrix()
+
+    # use analysis of model
+    pipeline = model._pipeline
+    vect = pipeline.named_steps['vect']
+    clf = pipeline.named_steps['clf']
+    analysis.print_maxent_features(vect, clf)
+    print(X[3])
+    analysis.print_feature_weights_for_item(vect, clf, X[3])
 
     # detailed confusion matrix, for result analysis
     cm_items = defaultdict(list)

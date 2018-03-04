@@ -1,0 +1,119 @@
+Binarización de conteos
+
+Curvas de aprendizaje
+
+maxent:
+n=64, acc=45.06, f1=27.38
+n=128, acc=44.27, f1=26.65
+n=257, acc=48.62, f1=33.76
+n=514, acc=49.01, f1=34.27
+n=1028, acc=52.17, f1=37.51
+n=2056, acc=53.36, f1=42.94
+n=4113, acc=53.75, f1=41.27
+n=8227, acc=51.19, f1=38.35
+
+svm:
+n=64, acc=44.66, f1=30.54
+n=128, acc=43.48, f1=30.47
+n=257, acc=46.64, f1=31.98
+n=514, acc=47.63, f1=35.52
+n=1028, acc=50.99, f1=40.30
+n=2056, acc=50.00, f1=40.07
+n=4113, acc=51.58, f1=40.68
+n=8227, acc=50.40, f1=40.30
+
+mnb:
+n=64, acc=46.05, f1=35.98
+n=128, acc=46.64, f1=36.45
+n=257, acc=49.41, f1=38.38
+n=514, acc=54.55, f1=48.62
+n=1028, acc=54.94, f1=42.70
+n=2056, acc=52.96, f1=41.44
+n=4113, acc=51.78, f1=46.76
+n=8227, acc=53.36, f1=46.95
+
+Resultado de evaluación
+
+maxent:
+
+Sentiment P:
+  Precision: 51.98% (118/227)
+  Recall: 75.64% (118/156)
+  F1: 61.62%
+Sentiment N:
+  Precision: 58.88% (126/214)
+  Recall: 57.53% (126/219)
+  F1: 58.20%
+Sentiment NEU:
+  Precision: 12.50% (2/16)
+  Recall: 2.90% (2/69)
+  F1: 4.71%
+Sentiment NONE:
+  Precision: 26.53% (13/49)
+  Recall: 20.97% (13/62)
+  F1: 23.42%
+Accuracy: 51.19% (259/506)
+Macro-Precision: 37.47%
+Macro-Recall: 39.26%
+Macro-F1: 38.35%
+		P	N	NEU	NONE
+P		118	28	4	6	
+N		65	126	6	22	
+NEU		29	30	2	8	
+NONE	15	30	4	13
+
+svm
+
+Sentiment P:
+  Precision: 54.55% (108/198)
+  Recall: 69.23% (108/156)
+  F1: 61.02%
+Sentiment N:
+  Precision: 63.21% (122/193)
+  Recall: 55.71% (122/219)
+  F1: 59.22%
+Sentiment NEU:
+  Precision: 15.79% (6/38)
+  Recall: 8.70% (6/69)
+  F1: 11.21%
+Sentiment NONE:
+  Precision: 24.68% (19/77)
+  Recall: 30.65% (19/62)
+  F1: 27.34%
+Accuracy: 50.40% (255/506)
+Macro-Precision: 39.56%
+Macro-Recall: 41.07%
+Macro-F1: 40.30%
+		P	N	NEU	NONE
+P		108	23	10	15	
+N		52	122	15	30	
+NEU		29	21	6	13	
+NONE	9	27	7	19
+
+mnb:
+
+Sentiment P:
+  Precision: 48.11% (127/264)
+  Recall: 81.41% (127/156)
+  F1: 60.48%
+Sentiment N:
+  Precision: 59.17% (142/240)
+  Recall: 64.84% (142/219)
+  F1: 61.87%
+Sentiment NEU:
+  Precision: 100.00% (0/0)
+  Recall: 0.00% (0/69)
+  F1: 0.00%
+Sentiment NONE:
+  Precision: 50.00% (1/2)
+  Recall: 1.61% (1/62)
+  F1: 3.12%
+Accuracy: 53.36% (270/506)
+Macro-Precision: 64.32%
+Macro-Recall: 36.97%
+Macro-F1: 46.95%
+		P	N	NEU	NONE
+P		127	29	0	0	
+N		76	142	0	1	
+NEU		37	32	0	0	
+NONE	24	37	0	1

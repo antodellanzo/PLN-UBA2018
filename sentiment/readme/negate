@@ -1,0 +1,117 @@
+Manejo de negaciones
+
+Curvas de aprendizaje
+
+maxent:
+n=64, acc=45.45, f1=27.94
+n=128, acc=46.05, f1=29.53
+n=257, acc=48.62, f1=35.34
+n=514, acc=49.41, f1=35.76
+n=1028, acc=52.77, f1=37.84
+n=2056, acc=53.56, f1=42.07
+n=4113, acc=54.35, f1=43.10
+n=8227, acc=51.58, f1=40.00
+
+svm:
+n=64, acc=45.26, f1=33.22
+n=128, acc=46.25, f1=34.85
+n=257, acc=45.45, f1=32.59
+n=514, acc=48.62, f1=37.83
+n=1028, acc=52.77, f1=42.70
+n=2056, acc=51.58, f1=40.98
+n=4113, acc=50.99, f1=41.14
+n=8227, acc=48.81, f1=38.33
+
+mnb:
+n=64, acc=47.23, f1=39.12
+n=128, acc=50.20, f1=43.04
+n=257, acc=51.58, f1=40.31
+n=514, acc=52.17, f1=29.67
+n=1028, acc=53.56, f1=42.30
+n=2056, acc=53.56, f1=42.66
+n=4113, acc=49.41, f1=46.22
+n=8227, acc=49.41, f1=45.31
+
+Resultados de evaluación
+
+maxent
+
+Sentiment P:
+  Precision: 51.15% (111/217)
+  Recall: 71.15% (111/156)
+  F1: 59.52%
+Sentiment N:
+  Precision: 60.65% (131/216)
+  Recall: 59.82% (131/219)
+  F1: 60.23%
+Sentiment NEU:
+  Precision: 16.67% (4/24)
+  Recall: 5.80% (4/69)
+  F1: 8.60%
+Sentiment NONE:
+  Precision: 30.61% (15/49)
+  Recall: 24.19% (15/62)
+  F1: 27.03%
+Accuracy: 51.58% (261/506)
+Macro-Precision: 39.77%
+Macro-Recall: 40.24%
+Macro-F1: 40.00%
+		P	N	NEU	NONE
+P		111	33	7	5	
+N		60	131	7	21	
+NEU		31	26	4	8	
+NONE	15	26	6	15
+
+svm
+
+Sentiment P:
+  Precision: 54.45% (104/191)
+  Recall: 66.67% (104/156)
+  F1: 59.94%
+Sentiment N:
+  Precision: 62.05% (121/195)
+  Recall: 55.25% (121/219)
+  F1: 58.45%
+Sentiment NEU:
+  Precision: 11.90% (5/42)
+  Recall: 7.25% (5/69)
+  F1: 9.01%
+Sentiment NONE:
+  Precision: 21.79% (17/78)
+  Recall: 27.42% (17/62)
+  F1: 24.29%
+Accuracy: 48.81% (247/506)
+Macro-Precision: 37.55%
+Macro-Recall: 39.15%
+Macro-F1: 38.33%
+		P	N	NEU	NONE
+P		104	27	10	15	
+N		45	121	20	33	
+NEU		25	26	5	13	
+NONE	17	21	7	17
+
+Sentiment P:
+  Precision: 43.03% (139/323)
+  Recall: 89.10% (139/156)
+  F1: 58.04%
+Sentiment N:
+  Precision: 60.77% (110/181)
+  Recall: 50.23% (110/219)
+  F1: 55.00%
+Sentiment NEU:
+  Precision: 100.00% (0/0)
+  Recall: 0.00% (0/69)
+  F1: 0.00%
+Sentiment NONE:
+  Precision: 50.00% (1/2)
+  Recall: 1.61% (1/62)
+  F1: 3.12%
+Accuracy: 49.41% (250/506)
+Macro-Precision: 63.45%
+Macro-Recall: 35.24%
+Macro-F1: 45.31%
+		P	N	NEU	NONE
+P		139	17	0	0	
+N		108	110	0	1	
+NEU		45	24	0	0	
+NONE	31	30	0	1

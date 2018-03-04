@@ -1,0 +1,59 @@
+Ejercicio 1
+
+Generé un script llamado stats.py el cual posee una clase Stats que toma como parámetro de entrada un TASS reader y calcula la cantidad total de tweets y la cantidad de tweets para cada valor de polaridad (P, N, NEG y NONE). Luego, al ejecutar el script, se imprime en pantalla dicha información sobre el corpus de entrenamiento de InterTASS y sobre el corpus de entrenamiento de GeneralTASS.
+
+Ejercicio 2
+
+Para este ejercicio implementé 5 mejoras: mejorar tokenizer, binarización de conteos, normalización básica de tweets, filtrado de stop words y manejo de negaciones. Modifiqué el constructor del SentimentClassifier y el método fit para que tome como parámetros distintos flags indicando qué mejora se desea utilizar.
+
+Mejorar tokenizer:
+Si el flag 'optimize_vect' está seteado, al CountVectorizer se le agrega el tokenizador 'word_tokenize' de nltk.
+
+Binarización de conteos:
+Si el flag 'binary_counts' está seteado, se setea en True el parámetro 'binary' del CountVectorizer para ignorar las repeticiones de palabras.
+
+Normalización básica de tweets:
+Si en el método 'fit', el flag 'normalize' está seteado, luego se realizan las siguientes modificaciones sobre los tweets:
+	- Se eliminan las menciones a otros usuarios usando el regex '(?:@[^\s]+)'.
+	- Se eliminan las urls usando el regex '(?:https?\://t.co/[\w]+)'
+	- Se eliminan múltiples repeticiones de vocales. Para esto, me guardo inicialmente en un set todas las palabras encontradas en los tweets. Luego, para cada tweet y para cada vocal, itero el tweet y reemplazo todas las apariciones de 3 o más veces de dicha vocal por una o dos veces ésta. Para decidir cuántas colocar, itero el set creado inicialmente para corroborar si la palabra con una vocal o dos existe. En dicho caso selecciono la que existe y sino coloco solo una vez la vocal ya que considero que es más probable que la palabra tuviese una vocal a dos.
+
+Filtrado de stop words
+Si el flag 'filter_stop_words' está seteado, luego le agrego al CountVectorizer el set de stopwords del español de nltk en el parámetro opcional 'stop_words'.
+
+Manejo de negaciones
+Si en el método 'fit', el flag 'negate' está seteado, luego itero cada tweet y si encuentro alguna negación, luego le agrego el token 'NOT_' al comienzo de cada palabra hasta encontrar un signo de finalización de oración. Para las negaciones, tomé el conjunto ['no', 'ni', 'tampoco', 'nunca', 'jamás', 'nada'] y para los signos de finalización de oración tomé el conjunto ['.', ',', ';', ':', '?', '!', ')', '"', '-', ']'].
+
+--------------------------
+
+Calculé las curvas de aprendizaje para cada clasificador (mnb, maxent y svm) y los evalué. Los resultados se encuentran en distintos archivos para cada una de las mejores y, dentro de cada uno, los distintos resultados para cada clasificador. Para esto mismo, fui modificando los scripts curve.py y eval.py para agregar cada flag correspondiente. 
+
+Ejercicio 3
+
+El clasificador que mejor resultados obtuvo fue el de optimizar el tokenizer. Realicé la evaluación con el corpus final de test del InterTASS y obtuve los siguientes resultados:
+
+Sentiment P:
+  Precision: 51.30% (533/1039)
+  Recall: 83.02% (533/642)
+  F1: 63.41%
+Sentiment N:
+  Precision: 62.12% (528/850)
+  Recall: 68.84% (528/767)
+  F1: 65.31%
+Sentiment NEU:
+  Precision: 0.00% (0/1)
+  Recall: 0.00% (0/216)
+  F1: 0.00%
+Sentiment NONE:
+  Precision: 33.33% (3/9)
+  Recall: 1.09% (3/274)
+  F1: 2.12%
+Accuracy: 56.03% (1064/1899)
+Macro-Precision: 36.69%
+Macro-Recall: 38.24%
+Macro-F1: 37.45%
+		P	N	NEU	NONE
+P		533	105	1	3	
+N		238	528	0	1	
+NEU		112	102	0	2	
+NONE	156	115	0	3

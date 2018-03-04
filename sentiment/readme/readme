@@ -28,6 +28,33 @@ Si en el método 'fit', el flag 'negate' está seteado, luego itero cada tweet y
 
 Calculé las curvas de aprendizaje para cada clasificador (mnb, maxent y svm) y los evalué. Los resultados se encuentran en distintos archivos para cada una de las mejores y, dentro de cada uno, los distintos resultados para cada clasificador. Para esto mismo, fui modificando los scripts curve.py y eval.py para agregar cada flag correspondiente. 
 
+Modifiqué el script eval.py para poder utilizar los métodos del analysis.py. Sobre la mejora de normalización de los tweets, obtuve los siguientes features más relevantes para cada sentimiento:
+
+N:
+	portada enhorabuena buena cont gracias ([-1.64449045 -1.45535079 -1.43223739 -1.42148721 -1.40340364])
+	indignante peor odio muertos triste ([1.72621515 1.73299467 1.83512769 2.12496696 2.52712875])
+NEU:
+	parados cont cree enhorabuena puedes ([-1.19776302 -1.11495946 -1.07203398 -0.94412509 -0.89738366])
+	estar armas huelga expectación decidirán ([1.30033208 1.30526381 1.35386966 1.35635226 1.36589434])
+NONE:
+	feliz gracias interesante enhorabuena gran ([-2.02118595 -1.95516257 -1.91240449 -1.85743999 -1.81697926])
+	periódico sesión jugar reunión portada ([1.2001909  1.23146523 1.39788342 1.50012488 2.28810728])
+P:
+	portada triste culpa urdangarin odio ([-1.63986011 -1.60891329 -1.45865282 -1.41405751 -1.31689502])
+	homenaje encanta gracias felicidades enhorabuena ([2.05178781 2.07366149 2.09553683 2.36817526 2.53529282])
+
+Tomando el tweet "@Jorge_Ruiz14 yo no tengo tiempo para esas cosas ahora mismo", los features que intervienen junto con sus respectivos pesos son:
+
+ahora [-0.22075784 -0.04932939  0.16619266  0.11125556]
+cosas [ 0.76658017  0.1032764  -0.29779341 -0.73327175]
+esas [-0.09210476  0.04190577  0.48793008 -0.45244892]
+mismo [ 0.65506277 -0.08428748  0.06452444 -0.50500542]
+no [ 0.80802934  0.12805885 -0.48990964 -0.74266606]
+para [-0.101503    0.00859928 -0.21918297  0.2052312 ]
+tengo [ 0.2049891   0.06626618 -0.12536818  0.03656226]
+tiempo [ 0.25664699  0.12543326 -0.70023662  0.08224497]
+yo [-0.09693192  0.4262631  -0.02180713 -0.12940653]
+
 Ejercicio 3
 
 El clasificador que mejor resultados obtuvo fue el de optimizar el tokenizer. Realicé la evaluación con el corpus final de test del InterTASS y obtuve los siguientes resultados:
